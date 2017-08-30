@@ -1,0 +1,18 @@
+{
+  "env": {
+    "browser": true
+  },
+  "extends": ['eslint:recommended', 'eslint-config-airbnb-es5/.eslintrc'],
+  "globals": {
+    "angular": 1,
+    "Egnyte": 1
+  },
+  "rules": {
+    "indent": [2, "tab"],
+    "linebreak-style": [2, "unix"],
+    "quotes": [2, "double"],
+    "semi": [2, "always"],
+    "func-names": [0, "unnamed"],
+    "no-console": [0]
+  }
+}
