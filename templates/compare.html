@@ -1,0 +1,82 @@
+<div class="row header-row margin-top-20">
+  <div class="col-md-12">
+    <div ng-hide="vm.resolved">
+      <h2>You need to enable pop-ups for this to work.</h2>
+    </div>
+    <div ng-show="vm.resolved"  class="main-head">
+      <h2 class="mh-content">Welcome {{vm.user.username}}!</h2>
+      <p class="mh-content">Your token is <b>{{vm.token}}</b></p>
+      <a class="mh-content" href="#" ng-click="vm.logout()">
+        <i class="fa fa-fw fa-sign-out"></i> Log Out</a>
+    </div>
+  </div>
+</div>
+<div class="row margin-top-20">
+  <div class="col-md-6 col-md-offset-3">
+    <form ng-submit="vm.compare.go()" name="compareForm" class="cf">
+      <fieldset class="form-group col-xs-12">
+        <label><i class="fa fa-fw fa-circle text-success"></i> Path 1</label>
+        <div class="input-group">
+          <span class="input-group-addon">
+            {{vm.compare.basePaths.truth}}/
+          </span>
+          <input class="form-control" type="text" ng-model="vm.compare.paths.truth" required ng-class="{disabled: vm.compare.done}">
+        </div>
+      </fieldset>
+      <fieldset class="form-group col-xs-12">
+        <label><i class="fa fa-fw fa-circle text-info"></i> Path 2</label>
+        <div class="input-group">
+          <span class="input-group-addon">
+            {{vm.compare.basePaths.check}}/
+          </span>
+          <input class="form-control" type="text" ng-model="vm.compare.paths.check" required ng-class="{disabled: vm.compare.done}">
+        </div>
+      </fieldset>
+      <fieldset class="form-group col-xs-6">
+        <label>Depth</label>
+        <input class="form-control" type="number" ng-max="3" ng-model="vm.compare.depth" required ng-class="{disabled: vm.compare.done}">
+      </fieldset>
+      <fieldset class="form-group col-xs-6">
+        <label>&nbsp;</label>
+        <button class="form-control btn-primary" type="submit" ng-class="{disabled: compareForm.$invalid || vm.compare.processing}" ng-hide="vm.compare.done">
+          <i class="fa fa-fw fa-random" ng-show="!vm.compare.processing"></i><i class="fa fa-fw fa-cog fa-spin" ng-show="vm.compare.processing"></i> Compare
+        </button>
+        <button class="form-control btn-warning" ng-click="vm.compare.done = false" ng-show="vm.compare.done" type="button">
+          <i class="fa fa-fw fa-mail-reply"></i> Reset
+        </button>
+      </fieldset>
+    </form>
+    <div class="text-center" ng-show="vm.compare.processing">
+      <span>processing</span>
+      <div class="elip">.</div>
+      <div class="elip">.</div>
+      <div class="elip">.</div>
+    </div>
+  </div>
+</div>
+<div class="row equal margin-top-20" ng-show="vm.compare.done && !vm.compare.processing">
+  <div class="col-md-4">
+    <div class="panel panel-default">
+      <div class="panel-heading"><i class="fa fa-fw fa-circle text-success"></i> {{vm.compare.paths.truth}}</div>
+      <div class="panel-body">
+        <pre>{{vm.compare.trees.truth | json}}</pre>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div class="panel panel-danger">
+      <div class="panel-heading"><i class="fa fa-fw fa-exclamation-circle"></i> Conflicts</div>
+      <div class="panel-body">
+        <pre ng-bind-html="vm.compare.diff"></pre>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div class="panel panel-default">
+      <div class="panel-heading"><i class="fa fa-fw fa-circle text-info"></i> {{vm.compare.paths.check}}</div>
+      <div class="panel-body">
+        <pre>{{vm.compare.trees.check | json}}</pre>
+      </div>
+    </div>
+  </div>
+</div>

@@ -3,7 +3,8 @@
 (function () {
 	angular
 		.module("egnyte", [
-			"ui.router"
+			"ui.router",
+			"ds.objectDiff"
 		])
 		.config(States)
 		.run(Run)
@@ -24,9 +25,15 @@
 			.state("main", {
 				url: "/",
 				controller: "MainCtrl",
-				controllerAs: "MainVM",
-				templateUrl: "templates/main.html"
+				controllerAs: "vm",
+				templateUrl: "templates/compare.html"
 			});
+			// .state("main", {
+			// 	url: "/",
+			// 	controller: "MainCtrl",
+			// 	controllerAs: "MainVM",
+			// 	templateUrl: "templates/main.html"
+			// });
 	}
 
 	// --------------------------------------
@@ -131,8 +138,8 @@
 
 	// --------------------------------------
 
-	MainCtrl.$inject = ["$q", "$scope", "$timeout", "e", "fs"];
-	function MainCtrl($q, $scope, $timeout, e, fs) {
+	MainCtrl.$inject = ["$q", "$scope", "$timeout", "e", "fs", "ObjectDiff"];
+	function MainCtrl($q, $scope, $timeout, e, fs, ObjectDiff) {
 		var vm = this;
 
 		vm.logout = logout;
@@ -149,8 +156,24 @@
 			query: null,
 			type: "FOLDER"
 		};
-
-		buildTemplate(2);
+		vm.compare = {
+			go: comparePaths,
+			done: false,
+			processing: false,
+			paths: {
+				truth: "000 TemplateProjFolder",
+				check: undefined
+			},
+			basePaths: {
+				truth: "Shared/Projects",
+				check: "Shared/Projects"
+			},
+			depth: 2,
+			trees: {
+				truth: undefined,
+				check: undefined
+			}
+		};
 
 		$scope.$on("rs:e", function (evt, info) {
 			vm.user = info.user;
@@ -164,6 +187,24 @@
 		function logout() {
 			sessionStorage.removeItem("token");
 			window.location.reload();
+		}
+
+		function comparePaths() {
+			vm.compare.processing = true;
+			return $q.all([buildTemplate(compilePathname("truth"), vm.compare.depth), buildTemplate(compilePathname("check"), vm.compare.depth)])
+			.then(function (paths) {
+				vm.compare.trees.truth = paths[0];
+				vm.compare.trees.check = paths[1];
+				vm.compare.processing = false;
+				vm.compare.done = true;
+				var diff = ObjectDiff.diffOwnProperties(paths[0], paths[1]);
+				vm.compare.diff = ObjectDiff.toJsonView(diff); 
+			});
+
+			function compilePathname(type) {
+				if (!vm.compare.paths[type]) return vm.compare.basePaths[type];
+				return [vm.compare.basePaths[type], vm.compare.paths[type]].join("/");
+			}
 		}
 
 		function getGroups() {
@@ -223,69 +264,48 @@
 			});
 		}
 
-		function buildTemplate(depth) {
-			var startPath = "Shared/Projects/000 TemplateProjFolder";
+		function buildTemplate(startPath, depth) {
 			var fileObj = {};
 			var deferred = $q.defer();
-			// var folderCount = 0;
-			// var queryCount = 0;
-			// deferred.promise;
-			// deferred.resolve();
-			// deferred.reject();
 
-			buildFs(startPath, 0);
+			return buildFs([startPath], 0);
 
-			function buildFs(path, level) {
-				var p = ["fs", path].join("/");
-				return e.makeQuery.v1(p, "GET", {}).then(function (res) {
-					if (res.hasOwnProperty("folders")) {
-						$q.all(res.folders.map(function (f) {
-							return traverse(parsePath(f.path), fileObj);
-						})).then(function (q) {
-							console.log(q);
-							level++;
-							if (level >= depth) {
-								console.log("here only once");
-                deferred.resolve(fileObj);
-                return deferred.promise;
-							} else {
-                $q.all(res.folders.map(function (f) { return buildFs(f.path, level)}));
-              }
-						});
-						// queryCount += res.folders.length;
-						// res.folders.forEach(function (f, i) {
-						//   var p = parsePath(f.path);
-						//   traverse(p, fileObj);
-						// });
-						// level++;
-						// if (level >= depth && level > 0) {
-						//   // console.log("queries", queryCount);
-						//   // if (queryCount === folderCount) {
-						//   //   console.log(fileObj, "hello")
-						//   // }
-						// } else {
-						//   res.folders.forEach(function (f) {
-						//     buildFs(f.path, level);
-						//   });
-						// }
+			function buildFs(paths, level) {
+				return $q.all(paths.map(function (p) {
+					return queryPath(p);
+				})).then(function (res) {
+					if (level + 1 >= depth) {
+						deferred.resolve(fileObj);
+						return deferred.promise;
+					} else {
+						return buildFs(res[0], level + 1);
 					}
 				});
-			}
 
-			function parsePath(path) {
-				return path.replace("/" + startPath + "/", "").split("/");
-			}
+				function queryPath(path) {
+					return e.makeQuery.v1(["fs", path].join("/"), "GET", {}).then(function (res) {
+						if (res.hasOwnProperty("folders")) {
+							return $q.all(res.folders.map(function (f) {
+								return traverse(parsePath(f.path), fileObj, f.path);
+							}));
+						}
+					});
 
-			function traverse(path, tree) {
-				var deferred = $q.defer();
-				if (path.length === 1) {
-					tree[path[0]] = {};
-					// folderCount++;
-					deferred.resolve(1);
-					return deferred.promise;
+					function parsePath(path) {
+						return path.replace("/" + startPath + "/", "").split("/");
+					}
+
+					function traverse(path, tree, origPath) {
+						var deferred = $q.defer();
+						if (path.length === 1) {
+							tree[path[0]] = {};
+							deferred.resolve(origPath);
+							return deferred.promise;
+						}
+						var t = path.splice(0, 1);
+						return traverse(path, tree[t], origPath);
+					}
 				}
-				var t = path.splice(0, 1);
-				return traverse(path, tree[t]);
 			}
 		}
 	}

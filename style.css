@@ -1,4 +1,5 @@
-.equal, .equal > div[class*='col-'] {
+.equal,
+.equal > div[class*='col-'] {
   display: -webkit-box;
   display: -moz-box;
   display: -ms-flexbox;
@@ -8,6 +9,58 @@
   flex-wrap: wrap;
   align-items: stretch;
 }
-.equal .panel{
+.equal .panel {
   width:100%;
+}
+.cf::after {
+  content: "";
+  display: table;
+  clear: both;
+}
+.margin-top-20 {
+  margin-top: 20px;
+}
+.header-row {
+  background-color: rgb(101, 157, 181);
+  color: white;
+}
+.main-head {
+  line-height: 40px;
+  vertical-align: middle;
+}
+.mh-content {
+  float: left;
+  display: inline-block;
+  margin: 20px 10px 10px;
+}
+a.mh-content {
+  float: right;
+  font-weight: bold;
+  color: white;
+}
+button.form-control {
+  font-weight: bold;
+}
+.disabled {
+  pointer-events: none;
+  opacity: 0.7;
+}
+@keyframes appear {
+  0% {opacity: 1;}
+  25% {opacity: 0;}
+  100% {opacity: 1;}
+}
+.elip {
+  display:inline;
+  font-size: 24px;
+  animation-name: appear;
+  animation-duration: 1.5s;
+  margin: 0 5px;
+  animation-iteration-count: infinite;
+}
+.elip:nth-of-type(2) {
+  animation-delay: 0.5s;
+}
+.elip:nth-of-type(3) {
+  animation-delay: 1s;
 }
