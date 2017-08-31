@@ -11,8 +11,8 @@
     </div>
   </div>
 </div>
-<div class="row margin-top-20">
-  <div class="col-md-6 col-md-offset-3">
+<div class="row margin-top-20" ng-show="vm.resolved">
+  <div class="col-md-8 col-md-offset-2">
     <form ng-submit="vm.compare.go()" name="compareForm" class="cf">
       <fieldset class="form-group col-xs-12">
         <label><i class="fa fa-fw fa-circle text-success"></i> Path 1</label>
@@ -20,7 +20,17 @@
           <span class="input-group-addon">
             {{vm.compare.basePaths.truth}}/
           </span>
-          <input class="form-control" type="text" ng-model="vm.compare.paths.truth" required ng-class="{disabled: vm.compare.done}">
+          <select class="form-control" ng-options="path as path for path in vm.compare.lists.truth" ng-model="vm.compare.paths.truth" ng-change="vm.updatePath(this, 'truth')" required ng-class="{disabled: vm.compare.done}">
+            <option value="" style="display:none;"></option>
+          </select>
+          <span class="input-group-addon">
+            <a href="#" class="text-danger" ng-click="vm.compare.updatePath('truth', -1)">
+              <i class="fa fa-fw fa-minus-circle"></i>
+            </a>
+            <a href="#" class="text-success" ng-click="vm.compare.updatePath('truth', 1)">
+              <i class="fa fa-fw fa-plus-circle"></i>
+            </a>
+          </span>
         </div>
       </fieldset>
       <fieldset class="form-group col-xs-12">
@@ -29,14 +39,24 @@
           <span class="input-group-addon">
             {{vm.compare.basePaths.check}}/
           </span>
-          <input class="form-control" type="text" ng-model="vm.compare.paths.check" required ng-class="{disabled: vm.compare.done}">
+          <select class="form-control" ng-options="path as path for path in vm.compare.lists.check" ng-model="vm.compare.paths.check" ng-change="vm.updatePath(this, 'check')" required ng-class="{disabled: vm.compare.done}">
+            <option value="" style="display:none;"></option>
+          </select>
+          <span class="input-group-addon">
+            <a href="#" class="text-danger" ng-click="vm.compare.updatePath('check', -1)">
+              <i class="fa fa-fw fa-minus-circle"></i>
+            </a>
+            <a href="#" class="text-success" ng-click="vm.compare.updatePath('check', 1)">
+              <i class="fa fa-fw fa-plus-circle"></i>
+            </a>
+          </span>
         </div>
       </fieldset>
-      <fieldset class="form-group col-xs-6">
+      <fieldset class="form-group col-xs-4 col-xs-offset-2">
         <label>Depth</label>
         <input class="form-control" type="number" ng-max="3" ng-model="vm.compare.depth" required ng-class="{disabled: vm.compare.done}">
       </fieldset>
-      <fieldset class="form-group col-xs-6">
+      <fieldset class="form-group col-xs-4">
         <label>&nbsp;</label>
         <button class="form-control btn-primary" type="submit" ng-class="{disabled: compareForm.$invalid || vm.compare.processing}" ng-hide="vm.compare.done">
           <i class="fa fa-fw fa-random" ng-show="!vm.compare.processing"></i><i class="fa fa-fw fa-cog fa-spin" ng-show="vm.compare.processing"></i> Compare
@@ -64,8 +84,8 @@
     </div>
   </div>
   <div class="col-md-4">
-    <div class="panel panel-danger">
-      <div class="panel-heading"><i class="fa fa-fw fa-exclamation-circle"></i> Conflicts</div>
+    <div class="panel panel-danger" ng-class="{'panel-danger': vm.compare.rawDiff.changed !== 'equal', 'panel-success': vm.compare.rawDiff.changed === 'equal'}">
+      <div class="panel-heading"><i class="fa fa-fw fa-exclamation-circle"></i> <span ng-show="vm.compare.rawDiff.changed === 'equal'">No </span>Conflicts</div>
       <div class="panel-body">
         <pre ng-bind-html="vm.compare.diff"></pre>
       </div>

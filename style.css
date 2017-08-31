@@ -64,3 +64,6 @@ button.form-control {
 .elip:nth-of-type(3) {
   animation-delay: 1s;
 }
+.input-group-addon a:hover {
+  text-decoration: none;
+}
