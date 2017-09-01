@@ -5,7 +5,8 @@ Visually compare file system structures of two directories in [Egynte](https://w
 ## Installation
 1. Clone this repository: `git clone`
 2. Enter project directory: `cd `
-3. Start a server: `python -m simpleHttpServer 8000`
+3. Install dependencies: `npm install`
+4. Start a server: `python -m simpleHttpServer 8000`
 
 ## Usage
 ### Logging in

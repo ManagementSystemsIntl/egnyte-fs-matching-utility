@@ -16,7 +16,6 @@
 	States.$inject = ["$stateProvider", "$locationProvider"];
 	function States($stateProvider, $locationProvider) {
 		$locationProvider.html5Mode(true);
-
 		$stateProvider
 			.state("main", {
 				url: "/",
