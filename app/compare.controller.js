@@ -13,6 +13,7 @@
 		vm.user = null;
 		vm.token = null;
 		vm.compare = e.compare;
+		vm.updatePath = updatePath;
 
 		$scope.$on("rs:e", function (evt, info) {
 			vm.user = info.user;
@@ -23,18 +24,21 @@
 					truth: res,
 					check: res
 				};
-				$scope.$digest();
+				vm.compare.paths = {
+					truth: res[0],
+					check: res[0]
+				};
+				$scope.$digest(vm.compare);
 			});
 		});
 
-		$scope.$on("rs:update-list", function (evt, p, type, list) {
-			vm.compare.lists[type] = list;
-			console.log(list, vm.compare, p)
-			$scope.$digest(vm.compare.lists[type]);
-		});
-
-		// $scope.$on("rs:digest-compare", function () {
-		// 	$scope.$digest(vm.compare);
-		// });
+		function updatePath(pathType, direction) {
+			return e.compare.updatePath(pathType, direction).then(function (res) {
+				vm.compare.basePaths[pathType] = res.basePath;
+				vm.compare.lists[pathType] = res.list;
+				vm.compare.paths[pathType] = res.path;
+				$scope.$digest(vm.compare);
+			});
+		}
 	}
 }());

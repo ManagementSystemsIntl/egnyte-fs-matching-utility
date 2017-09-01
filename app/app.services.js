@@ -5,15 +5,20 @@
 		.module("egnyte")
 		.service("e", EgnyteService);
 
-	EgnyteService.$inject = ["$cookies", "$q", "$window", "domain", "ObjectDiff", "urlBase"];
-	function EgnyteService($cookies, $q, $window, domain, ObjectDiff, urlBase) {
-		var e = Egnyte.init(domain, {
-			key: $cookies.get("key") || $window.prompt("Please provide egnyte api key."),
+	EgnyteService.$inject = ["$cookies", "$q", "$window", "emuBase", "ObjectDiff", "urlBase"];
+	function EgnyteService($cookies, $q, $window, emuBase, ObjectDiff, urlBase) {
+		var domain = $cookies.get("egnyte_domain") || $window.prompt("Please provide your Egnyte domain:");
+		var domainUrl = "https://" + domain + ".egnyte.com";
+		var key = $cookies.get("key") || $window.prompt("Please provide a valid Egnyte API key for " + domain + ":");
+
+		var e = Egnyte.init(domainUrl, {
+			key: key,
 			mobile: true
 		});
 
 		e.token = sessionStorage.getItem("token");
-		e.key = $cookies.get("key");
+		e.key = key;
+		e.domain = domain;
 		e.login = login;
 		e.logout = logout;
 		e.user = null;
@@ -28,18 +33,20 @@
 			done: false,
 			processing: false,
 			paths: {
-				truth: "000 TemplateProjFolder",
+				truth: undefined,
 				check: undefined
 			},
 			basePaths: {
-				truth: "Shared/Projects",
-				check: "Shared/Projects"
+				truth: emuBase,
+				check: emuBase
 			},
 			lists: {
 				truth: undefined,
 				check: undefined
 			},
-			depth: 2,
+			depth: {
+				value: 2
+			},
 			trees: {
 				truth: undefined,
 				check: undefined
@@ -62,6 +69,7 @@
 						e.resolved = true;
 						sessionStorage.setItem("token", e.API.auth.token);
 						$cookies.put("key", e.API.auth.options.key, {expires: new Date(2020, 0, 1)});
+						$cookies.put("egnyte_domain", domain, {expires: new Date(2020, 0, 1)});
 						deferred.resolve(e);
 					});
 				},
@@ -76,12 +84,13 @@
 		function logout() {
 			sessionStorage.removeItem("token");
 			$cookies.remove("key");
+			$cookies.remove("egnyte_domain");
 			$window.location.reload();
 		}
 
 		function makeQueryV2(endpoint, method, opts) {
 			var reqOpts = {
-				url: [domain, "pubapi", "v2", endpoint].join("/"),
+				url: [domainUrl, "pubapi", "v2", endpoint].join("/"),
 				method: method,
 				headers: {},
 				params: opts
@@ -97,7 +106,7 @@
 
 		function makeQueryV1(endpoint, method, opts) {
 			var reqOpts = {
-				url: [domain, "pubapi", "v1", endpoint].join("/"),
+				url: [domainUrl, "pubapi", "v1", endpoint].join("/"),
 				method: method,
 				headers: {},
 				params: opts
@@ -120,29 +129,40 @@
 			});
 		}
 
-		//// working on this
 		function updatePath(pathType, direction) {
-			if (direction > 0) {
-				var p = consolidateBasePath(pathType);
-			}
-			getSubfolders(p).then(function (res) {
-				return $rootScope.$broadcast("rs:update-list", p, pathType, res);
-			}).catch(function (err) { console.log(err)});
+			var p = configBasePath(pathType, direction);
+			if (!p) return false;
+			return getSubfolders(p).then(function (res) {
+				var path = e.compare.basePaths[pathType] === p ? e.compare.paths[pathType] : calcPath(pathType, direction, res);
+				return {
+					basePath: p,
+					list: res,
+					path: path
+				};
+			});
 
-			function consolidateBasePath(type) {
-				return [e.compare.basePaths[type], e.compare.paths[type]].join("/");
+			function configBasePath(type, dir) {
+				if (dir > 0) {
+					return [e.compare.basePaths[type], e.compare.paths[type]].join("/");
+				}
+				if (e.compare.basePaths[type] === emuBase) return emuBase;
+				return e.compare.basePaths[type].split("/").slice(0, -1).join("/");
+			}
+
+			function calcPath(type, dir, list) {
+				return dir > 0 ? list[0] : e.compare.basePaths[type].split("/").splice(-1)[0]
 			}
 		}
 
 		function comparePaths() {
 			e.compare.processing = true;
-			return $q.all([buildTemplate(compilePathname("truth"), e.compare.depth), buildTemplate(compilePathname("check"), e.compare.depth)])
+			return $q.all([buildTemplate(compilePathname("truth"), e.compare.depth.value), buildTemplate(compilePathname("check"), e.compare.depth.value)])
 				.then(function (paths) {
 					e.compare.trees.truth = paths[0];
 					e.compare.trees.check = paths[1];
 					e.compare.processing = false;
 					e.compare.done = true;
-					e.compare.rawDiff = ObjectDiff.diffOwnProperties(paths[0], paths[1]);;
+					e.compare.rawDiff = ObjectDiff.diffOwnProperties(paths[0], paths[1]);
 					e.compare.diff = ObjectDiff.toJsonView(e.compare.rawDiff);
 				});
 
@@ -159,6 +179,10 @@
 			return buildFs([startPath], 0);
 
 			function buildFs(paths, level) {
+				if (!paths) {
+					deferred.resolve(fileObj);
+					return deferred.promise;
+				}
 				return $q.all(paths.map(function (p) {
 					return queryPath(p, startPath, fileObj);
 				})).then(function (res) {
@@ -176,6 +200,7 @@
 								return traverse(parsePath(f.path), fileObj, f.path);
 							}));
 						}
+						return false;
 					});
 
 					function parsePath(path) {

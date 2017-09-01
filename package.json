@@ -13,6 +13,7 @@
     "angular-cookies": "^1.6.6",
     "angular-object-diff": "^1.0.3",
     "angular-ui-router": "^1.0.3",
+    "angularjs-slider": "^6.4.0",
     "bootstrap": "^3.3.7",
     "egnyte-js-sdk": "^2.6.4",
     "font-awesome": "^4.7.0"

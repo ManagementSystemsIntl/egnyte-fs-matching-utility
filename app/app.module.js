@@ -5,12 +5,13 @@
 		.module("egnyte", [
 			"ui.router",
 			"ds.objectDiff",
+			"rzModule",
 			"ngCookies"
 		])
 		.config(States)
 		.run(Run)
-		.constant("domain", "https://msiworldwide.egnyte.com")
-		.constant("urlBase", window.location.origin);
+		.constant("urlBase", window.location.origin)
+		.constant("emuBase", "Shared/Projects")
 
 	States.$inject = ["$stateProvider", "$locationProvider"];
 	function States($stateProvider, $locationProvider) {

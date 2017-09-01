@@ -17,12 +17,30 @@
   display: table;
   clear: both;
 }
-.margin-top-20 {
-  margin-top: 20px;
-}
 .header-row {
-  background-color: rgb(101, 157, 181);
+  background: #3a7bd5;  /* fallback for old browsers */
+  background: -webkit-linear-gradient(to top, #3a6073, #3a7bd5);  /* Chrome 10-25, Safari 5.1-6 */
+  background: linear-gradient(to top, #3a6073, #3a7bd5); /* W3C, IE 10+/ Edge, Firefox 16+, Chrome 26+, Opera 12+, Safari 7+ */
   color: white;
+  margin-top: 20px;
+  border-top-right-radius: 10px;
+}
+.color-row {
+  background: #ECE9E6;  /* fallback for old browsers */
+  background: -webkit-linear-gradient(to right, #FFFFFF, #ECE9E6);  /* Chrome 10-25, Safari 5.1-6 */
+  background: linear-gradient(to right, #FFFFFF, #ECE9E6); /* W3C, IE 10+/ Edge, Firefox 16+, Chrome 26+, Opera 12+, Safari 7+ */
+  padding-top: 20px;
+  margin-bottom: 20px;
+  border-bottom: 1px solid #ECE9E6;
+  border-right: 1px solid #ECE9E6;
+  border-bottom-right-radius: 10px;
+}
+.form-col {
+  padding-top: 20px;
+  margin-bottom: 20px;
+  border: 1px solid #ddd;
+  border-radius: 3px;
+  background: #fff;
 }
 .main-head {
   line-height: 40px;
@@ -44,6 +62,7 @@ button.form-control {
 .disabled {
   pointer-events: none;
   opacity: 0.7;
+  cursor: not-allowed;
 }
 @keyframes appear {
   0% {opacity: 1;}
@@ -64,6 +83,46 @@ button.form-control {
 .elip:nth-of-type(3) {
   animation-delay: 1s;
 }
-.input-group-addon a:hover {
+.input-group-addon a:hover,
+.input-group-addon a:active,
+.input-group-addon a:visited,
+.input-group-addon a:focus {
   text-decoration: none;
+}
+.rzslider .rz-pointer {
+  height: 16px;
+  width: 16px;
+  top: -6px;
+  background-color: #666;
+}
+.rzslider .rz-pointer::after {
+  height: 6px;
+  width: 6px;
+  top: 5px;
+  left: 5px;
+}
+.rzslider .rz-bar {
+  background-color: #ccc;
+}
+.rzslider .rz-bar.rz-selection {
+  background-color: #666;
+}
+.rzslider .rz-pointer.rz-active:after {
+  background-color: #aaa;
+}
+del.diff {
+  background: #eaf2c2;
+  color: #406619;
+  text-decoration: none;
+}
+del.diff span {
+  color: #406619;
+}
+ins.diff {
+  background: #d9edf7;
+  color: #31708f;
+  text-decoration: none;
+}
+ins.diff span {
+  color: #31708f;
 }
